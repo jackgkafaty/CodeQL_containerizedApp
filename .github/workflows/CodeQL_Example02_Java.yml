@@ -1,0 +1,57 @@
+name: CodeQL Example02 Java
+
+
+on:
+  # push:
+  #  branches: [ main ]
+
+  pull_request:
+    branches: [ main ]
+    
+jobs:
+  Container_Example02_Java:
+    runs-on: 'Ubuntu-latest'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [Java]
+
+    container:
+      image: openjdk:8
+      options: --user root
+
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set safe directory
+        run: |
+         git config --global --add safe.directory /__w/CodeQL_containerizedApp/CodeQL_containerizedApp/
+       
+      - name: Install dependencies
+        working-directory: /__w/CodeQL_containerizedApp/CodeQL_containerizedApp/Example02_Java/
+        run: |
+         apt-get update && \
+         apt-get install build-essential maven default-jdk cowsay netcat -y && \
+         update-alternatives --config javac
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Build with Maven
+        working-directory: /__w/CodeQL_containerizedApp/CodeQL_containerizedApp/Example02_Java/
+        run: |
+         mvn -B package --file pom.xml
+
+     
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+

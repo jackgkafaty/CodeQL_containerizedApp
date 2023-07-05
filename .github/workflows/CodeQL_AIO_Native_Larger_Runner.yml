@@ -1,0 +1,147 @@
+name: CodeQL_AIO_Native_Larger_Runner_Example.yml
+on:
+  # push:
+   # branches: [ main ]
+
+  pull_request:
+    branches: [main]
+
+
+jobs:
+  Example01_JavaScript:
+    runs-on: [Larger_Runner_Example]
+    defaults:
+      run:
+        working-directory: /home/runner/work/CodeQL_containerizedApp/CodeQL_containerizedApp/Example01_JavaScript/
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  Example02_Java:
+    needs: Example01_JavaScript
+    runs-on: [Larger_Runner_Example]
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [Java]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        working-directory: /home/runner/work/CodeQL_containerizedApp/CodeQL_containerizedApp/Example02_Java/
+        run: |
+          sudo apt-get install build-essential maven default-jdk cowsay netcat -y && \
+          sudo apt-get install -y openjdk-8-jdk && \
+          sudo update-alternatives --config javac
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Build with Maven
+        working-directory: /home/runner/work/CodeQL_containerizedApp/CodeQL_containerizedApp/Example02_Java/
+        run: |
+          mvn -B package --file pom.xml
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  Example03_Csharp:
+    needs: [Example01_JavaScript, Example02_Java]
+    runs-on: [Larger_Runner_Example]
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [csharp]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y wget && \
+          sudo apt-get install -y curl
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Build with dotnet
+        working-directory: /home/runner/work/CodeQL_containerizedApp/CodeQL_containerizedApp/Example03_Csharp/WebGoatCore/
+        run: dotnet build WebGoatCore.csproj
+
+      # - name: Autobuild
+      #   uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  Example04_Python:
+    needs: [Example01_JavaScript, Example02_Java, Example03_Csharp]
+    runs-on: [Larger_Runner_Example]
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["python"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2

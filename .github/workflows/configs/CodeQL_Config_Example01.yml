@@ -1,0 +1,5 @@
+name: "My CodeQL config"
+
+
+paths-ignore: 
+    - /__w/*/*/Example01_JavaScript/build/

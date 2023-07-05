@@ -1,0 +1,55 @@
+name: CodeQL Example03 Csharp
+
+on:
+  # push:
+  #  branches: [ main ]
+
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  Container_Example03_Csharp:
+    runs-on: 'Ubuntu-latest'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [csharp]
+
+    container:
+      image: mcr.microsoft.com/dotnet/aspnet:7.0
+      #options: --cpu 2
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Install dependencies
+        run: |
+          apt-get update && apt-get upgrade -y --no-install-recommends && \
+          apt-get install -y wget && \
+          apt-get install -y curl 
+          
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x      
+
+      - name: Build with dotnet
+        working-directory: /__w/CodeQL_containerizedApp/CodeQL_containerizedApp/Example03_Csharp/WebGoatCore/
+        run: dotnet build WebGoatCore.csproj
+
+     # - name: Autobuild
+     #   uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
